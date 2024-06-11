@@ -78,7 +78,11 @@ class CategoryContent extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     backgroundColor: circleColor,
-                    child: SvgPicture.asset(iconPath, color: Colors.white),
+                    child: SizedBox(
+                      width: 24, // Adjust the width as needed
+                      height: 24, // Adjust the height as needed
+                      child: SvgPicture.asset(iconPath, color: Colors.white),
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Text(title, style: const TextStyle(fontSize: 18)),
@@ -99,13 +103,21 @@ class CategoryContent extends StatelessWidget {
                   ),
                   const SizedBox(width: 16),
                   IconButton(
-                    icon: SvgPicture.asset('assets/images/ic_edit.svg', color: Colors.yellow),
+                    icon: SizedBox(
+                      width: 24, // Adjust the width as needed
+                      height: 24, // Adjust the height as needed
+                      child: SvgPicture.asset('assets/images/ic_edit.svg', color: Colors.yellow),
+                    ),
                     onPressed: () {
                       // Edit action here
                     },
                   ),
                   IconButton(
-                    icon: SvgPicture.asset('assets/images/ic_delete.svg', color: Colors.red),
+                    icon: SizedBox(
+                      width: 24, // Adjust the width as needed
+                      height: 24, // Adjust the height as needed
+                      child: SvgPicture.asset('assets/images/ic_delete.svg', color: Colors.red),
+                    ),
                     onPressed: () {
                       // Delete action here
                     },
