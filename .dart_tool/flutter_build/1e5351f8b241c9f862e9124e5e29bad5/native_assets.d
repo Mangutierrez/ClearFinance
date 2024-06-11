@@ -1,0 +1,1 @@
+ /home/user/ClearFinance/.dart_tool/flutter_build/1e5351f8b241c9f862e9124e5e29bad5/native_assets.yaml: 

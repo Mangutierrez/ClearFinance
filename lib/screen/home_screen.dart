@@ -1,5 +1,7 @@
 import 'package:clear_finance/screen/history_content.dart';
 import 'package:clear_finance/screen/home_content.dart';
+import 'package:clear_finance/screen/category_content.dart';
+import 'package:clear_finance/screen/goals_content.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -17,8 +19,8 @@ class _HomeScreenState extends State<HomeScreen> {
   static const List<Widget> _widgetOptions = <Widget>[
     HomeContent(),
     HistoryContent(),
-    Text('Categorías'),
-    Text('Metas'),
+    CategoryContent(),
+    GoalsContent(),
   ];
 
   static const List<String> _appBarTitlePages = <String>[
