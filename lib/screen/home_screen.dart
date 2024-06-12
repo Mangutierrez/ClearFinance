@@ -3,6 +3,7 @@ import 'package:clear_finance/screen/home_content.dart';
 import 'package:clear_finance/screen/category_content.dart';
 import 'package:clear_finance/screen/goals_content.dart';
 import 'package:clear_finance/screen/new_category_content.dart';
+import 'package:clear_finance/screen/perfil_content.dart'; 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -66,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
         margin: const EdgeInsets.all(24),
         child: ListView(
           children: <Widget>[
-            const SizedBox(height: 20, child: SizedBox.shrink()),
+            const SizedBox(height: 20),
             Padding(
                 padding: const EdgeInsets.only(right: 16),
                 child: Row(
@@ -89,11 +90,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     )
                   ],
                 )),
-            const SizedBox(height: 20, child: SizedBox.shrink()),
+            const SizedBox(height: 20),
             ListTile(
               leading: SvgPicture.asset('assets/images/ic_profile.svg'),
               title: const Text('Perfil', style: TextStyle(fontSize: 16)),
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => PerfilContent()), // Redirige a PerfilContent
+                );
+              },
             ),
             ListTile(
               leading: SvgPicture.asset('assets/images/ic_help.svg'),
