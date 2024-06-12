@@ -1,17 +1,55 @@
+import 'package:clear_finance/data/category_data.dart';
+import 'package:clear_finance/model/category_model.dart';
+import 'package:clear_finance/screen/new_category_content.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class CategoryContent extends StatelessWidget {
-  const CategoryContent({Key? key}) : super(key: key);
+class CategoryContent extends StatefulWidget {
+  const CategoryContent({super.key});
+
+  @override
+  _CategoryContentState createState() => _CategoryContentState();
+}
+
+class _CategoryContentState extends State<CategoryContent> {
+  bool showNewCategoryContent = false;
+  CategoryModel? categoryToEdit;
 
   @override
   Widget build(BuildContext context) {
+    return showNewCategoryContent
+        ? NewCategoryContent(
+            categoryToEdit: categoryToEdit,
+            onCancel: () {
+              setState(() {
+                showNewCategoryContent = false;
+              });
+            },
+            onCategoryCreated: (fromEdit, categoryModel) {
+              if (fromEdit) {
+                CategoryData.categories.remove(categoryToEdit);
+                categoryToEdit = null;
+              }
+              CategoryData.categories.add(categoryModel);
+              setState(() {
+                showNewCategoryContent = false;
+              });
+            },
+          )
+        : _buildCategoryContent();
+  }
+
+  Widget _buildCategoryContent() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
           InkWell(
-            onTap: () {},
+            onTap: () {
+              setState(() {
+                showNewCategoryContent = true;
+              });
+            },
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
@@ -40,24 +78,23 @@ class CategoryContent extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Expanded(
-            child: ListView(
-              children: [
-                _buildCategoryItem('Salario', 'assets/images/ic_salary.svg', const Color(0xFFF4BE37), true),
-                _buildCategoryItem('Comida', 'assets/images/ic_salary.svg', const Color(0xFF238EBA), false),
-                _buildCategoryItem('Salario', 'assets/images/ic_salary.svg', const Color(0xFFF4BE37), true),
-                _buildCategoryItem('Comida', 'assets/images/ic_salary.svg', const Color(0xFF238EBA), false),
-                _buildCategoryItem('Salario', 'assets/images/ic_salary.svg', const Color(0xFFF4BE37), true),
-                _buildCategoryItem('Comida', 'assets/images/ic_salary.svg', const Color(0xFF238EBA), false),
-                _buildCategoryItem('Salario', 'assets/images/ic_salary.svg', const Color(0xFFF4BE37), true),
-              ],
-            ),
-          ),
+              child: CategoryData.categories.isNotEmpty
+                  ? ListView.builder(
+                      itemCount: CategoryData.categories.length,
+                      itemBuilder: (context, index) {
+                        final category = CategoryData.categories[index];
+                        return _buildCategoryItem(category);
+                      },
+                    )
+                  : const Center(
+                      child: Text('No hay categorías'),
+                    ))
         ],
       ),
     );
   }
 
-  Widget _buildCategoryItem(String title, String iconPath, Color circleColor, bool isIncome) {
+  Widget _buildCategoryItem(CategoryModel category) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Container(
@@ -77,27 +114,33 @@ class CategoryContent extends StatelessWidget {
               Row(
                 children: [
                   CircleAvatar(
-                    backgroundColor: circleColor,
+                    backgroundColor: category.backgroundColor,
                     child: SizedBox(
-                      width: 24, // Adjust the width as needed
-                      height: 24, // Adjust the height as needed
-                      child: SvgPicture.asset(iconPath, color: Colors.white),
-                    ),
+                        width: 24,
+                        height: 24,
+                        child: Icon(
+                          category.icon,
+                          color: Colors.white,
+                          size: 24,
+                        )),
                   ),
                   const SizedBox(width: 16),
-                  Text(title, style: const TextStyle(fontSize: 18)),
+                  Text(category.name, style: const TextStyle(fontSize: 18)),
                 ],
               ),
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
                     decoration: BoxDecoration(
-                      color: isIncome ? Colors.green : Colors.red,
+                      color: category.type == 'Ingreso'
+                          ? Colors.green
+                          : Colors.red,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      isIncome ? 'Ingreso' : 'Gasto',
+                      category.type,
                       style: const TextStyle(color: Colors.white),
                     ),
                   ),
@@ -106,20 +149,27 @@ class CategoryContent extends StatelessWidget {
                     icon: SizedBox(
                       width: 24, // Adjust the width as needed
                       height: 24, // Adjust the height as needed
-                      child: SvgPicture.asset('assets/images/ic_edit.svg', color: Colors.yellow),
+                      child: SvgPicture.asset('assets/images/ic_edit.svg',
+                          color: Colors.yellow),
                     ),
                     onPressed: () {
-                      // Edit action here
+                      setState(() {
+                        showNewCategoryContent = true;
+                        categoryToEdit = category;
+                      });
                     },
                   ),
                   IconButton(
                     icon: SizedBox(
                       width: 24, // Adjust the width as needed
                       height: 24, // Adjust the height as needed
-                      child: SvgPicture.asset('assets/images/ic_delete.svg', color: Colors.red),
+                      child: SvgPicture.asset('assets/images/ic_delete.svg',
+                          color: Colors.red),
                     ),
                     onPressed: () {
-                      // Delete action here
+                      setState(() {
+                        CategoryData.categories.remove(category);
+                      });
                     },
                   ),
                 ],
