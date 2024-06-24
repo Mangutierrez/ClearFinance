@@ -1,17 +1,55 @@
+import 'package:clear_finance/data/history_data.dart';
+import 'package:clear_finance/model/history_model.dart';
+import 'package:clear_finance/screen/new_history_content.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class HistoryContent extends StatelessWidget {
+class HistoryContent extends StatefulWidget {
   const HistoryContent({super.key});
 
   @override
+  _HistoryContentState createState() => _HistoryContentState();
+}
+
+class _HistoryContentState extends State<HistoryContent> {
+  bool showNewHistoryContent = false;
+  HistoryModel? historyToEdit;
+
+  @override
   Widget build(BuildContext context) {
+    return showNewHistoryContent
+        ? NewHistoryContent(
+            historyToEdit: historyToEdit,
+            onCancel: () {
+              setState(() {
+                showNewHistoryContent = false;
+              });
+            },
+            onHistoryCreated: (fromEdit, historyModel) {
+              if (fromEdit) {
+                HistoryData.history.remove(historyToEdit);
+                historyToEdit = null;
+              }
+              HistoryData.history.add(historyModel);
+              setState(() {
+                showNewHistoryContent = false;
+              });
+            },
+          )
+        : _buildHistoryContent();
+  }
+
+  Widget _buildHistoryContent() {
     return Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(children: [
           InkWell(
-              onTap: () {},
+              onTap: () {
+                setState(() {
+                  showNewHistoryContent = true;
+                });
+              },
               child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
@@ -41,72 +79,23 @@ class HistoryContent extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.max,
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 10),
-                const Text('May 25',
-                    style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                _buildHistoryItem(
-                    'May 25',
-                    'Salario',
-                    'Ingreso',
-                    'Sueldo',
-                    '0.00 COP',
-                    const Color(0xFFF4BE37),
-                    const Color(0xFFD64848)),
-                const SizedBox(height: 10),
-                _buildHistoryItem(
-                    'May 25',
-                    'Comida',
-                    'Gasto',
-                    'Sueldo',
-                    '0.00 COP',
-                    const Color(0xFF48B6D6),
-                    const Color(0xFFD64848)),
-                const SizedBox(height: 10),
-                _buildHistoryItem(
-                    'May 24',
-                    'Salario',
-                    'Ingreso',
-                    'Sueldo',
-                    '0.00 COP',
-                    const Color(0xFFF4BE37),
-                    const Color(0xFFD64848)),
-                const SizedBox(height: 10),
-                _buildHistoryItem(
-                    'May 24',
-                    'Salario',
-                    'Ingreso',
-                    'Sueldo',
-                    '0.00 COP',
-                    const Color(0xFFF4BE37),
-                    const Color(0xFFD64848)),
-                const SizedBox(height: 10),
-                _buildHistoryItem(
-                    'May 24',
-                    'Salario',
-                    'Ingreso',
-                    'Sueldo',
-                    '0.00 COP',
-                    const Color(0xFFF4BE37),
-                    const Color(0xFFD64848)),
-                const SizedBox(height: 10),
-                _buildHistoryItem(
-                    'May 24',
-                    'Salario',
-                    'Ingreso',
-                    'Sueldo',
-                    '0.00 COP',
-                    const Color(0xFFF4BE37),
-                    const Color(0xFFD64848)),
-              ],
+              children: HistoryData.history.map((historyItem) {
+                return Column(
+                  children: [
+                    const SizedBox(height: 10),
+                    Text(historyItem.date,
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold)),
+                    _buildHistoryItem(historyItem),
+                  ],
+                );
+              }).toList(),
             ),
           ))
         ]));
   }
 
-  Widget _buildHistoryItem(String date, String category, String type,
-      String description, String amount, Color categoryColor, Color typeColor) {
+  Widget _buildHistoryItem(HistoryModel historyItem) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -122,26 +111,35 @@ class HistoryContent extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  _buildChip(category, categoryColor),
+                  _buildChip(historyItem.category, historyItem.categoryColor),
                   const SizedBox(width: 8),
-                  _buildChip(type, typeColor),
+                  _buildChip(historyItem.type, historyItem.typeColor),
                   const Spacer(),
                   IconButton(
                     icon: SvgPicture.asset('assets/images/ic_edit.svg'),
-                    onPressed: () {},
+                    onPressed: () {
+                      setState(() {
+                        showNewHistoryContent = true;
+                        historyToEdit = historyItem;
+                      });
+                    },
                   ),
                   IconButton(
                     icon: SvgPicture.asset('assets/images/ic_delete.svg'),
-                    onPressed: () {},
+                    onPressed: () {
+                      setState(() {
+                        HistoryData.history.remove(historyItem);
+                      });
+                    },
                   ),
                 ],
               ),
               const SizedBox(height: 8),
-              Text(description,
+              Text(historyItem.description,
                   style: const TextStyle(
                       fontSize: 20, fontWeight: FontWeight.w300)),
               const SizedBox(height: 8),
-              Text(amount,
+              Text(historyItem.amount,
                   style: const TextStyle(
                       fontSize: 20, fontWeight: FontWeight.bold)),
             ],
