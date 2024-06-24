@@ -118,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
             ListTile(
-              leading: SvgPicture.asset('assets/images/ic_help.svg'),
+              leading: SvgPicture.asset('assets/images/ic_logout.svg'),
               title: const Text('Cerrar Sesión',
                   style: TextStyle(
                     fontFamily: 'Inter',
