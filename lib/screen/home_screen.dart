@@ -4,6 +4,7 @@ import 'package:clear_finance/screen/category_content.dart';
 import 'package:clear_finance/screen/goals_content.dart';
 import 'package:clear_finance/screen/new_category_content.dart';
 import 'package:clear_finance/screen/perfil_content.dart'; 
+import 'package:clear_finance/screen/help_content.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -108,7 +109,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     fontFamily: 'Inter',
                     fontSize: 16,
                   )),
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => HelpContent()), // Redirige a HelpContent
+                );
+              },
             ),
           ],
         ),
