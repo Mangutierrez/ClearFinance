@@ -15,7 +15,7 @@ class HelpContent extends StatelessWidget {
             children: <Widget>[
               // Image
               Image.asset(
-                'assets/your_image.png', // Place your image in the assets folder and update the path accordingly
+                'assets/logo.png', // Place your image in the assets folder and update the path accordingly
                 height: 150,
               ),
               SizedBox(height: 20),
