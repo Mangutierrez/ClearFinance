@@ -1,11 +1,44 @@
+import 'package:clear_finance/model/category_model.dart';
 import 'package:flutter/material.dart';
 import 'package:pie_chart/pie_chart.dart';
+import 'package:clear_finance/data/category_data.dart';
+import 'package:clear_finance/data/history_data.dart';
+import 'package:clear_finance/util/format_util.dart';
 
 class HomeContent extends StatelessWidget {
   const HomeContent({super.key});
 
   @override
   Widget build(BuildContext context) {
+    double totalIngresos = HistoryData.history
+        .where((item) => item.type == 'Ingreso')
+        .fold(0, (sum, item) => sum + item.amount);
+    double totalGastos = HistoryData.history
+        .where((item) => item.type == 'Gasto')
+        .fold(0, (sum, item) => sum + item.amount);
+    double balance = totalIngresos - totalGastos;
+
+    Map<String, double> ingresosMap = {};
+    Map<String, double> gastosMap = {};
+
+    HistoryData.history.forEach((item) {
+      if (item.type == 'Ingreso') {
+        ingresosMap[item.category] = (ingresosMap[item.category] ?? 0) + item.amount;
+      } else {
+        gastosMap[item.category] = (gastosMap[item.category] ?? 0) + item.amount;
+      }
+    });
+
+    List<Widget> ingresosLegends = ingresosMap.keys.map((key) {
+      Color? color = _getCategoryColor(key);
+      return _buildCardItem(key, color ?? Colors.blue);
+    }).toList();
+
+    List<Widget> gastosLegends = gastosMap.keys.map((key) {
+      Color? color = _getCategoryColor(key);
+      return _buildCardItem(key, color ?? Colors.red);
+    }).toList();
+
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -14,45 +47,30 @@ class HomeContent extends StatelessWidget {
           children: [
             const SizedBox(height: 20),
             Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: const Text(
-                  'COP 0.00',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                  ),
-                )),
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text(
+                'COP ${FormatUtil.formatCurrency(balance)}',
+                style: const TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
             const SizedBox(height: 20),
             Container(
                 padding: const EdgeInsets.all(4),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildCard('Ingresos', '0.00 COP', const Color(0xFF6DD648)),
+                    _buildCard('Ingresos', '${FormatUtil.formatCurrency(totalIngresos)} COP', const Color(0xFF6DD648)),
                     const SizedBox(width: 20),
-                    _buildCard('Gastos', '0.00 COP', const Color(0XFFD64848)),
+                    _buildCard('Gastos', '${FormatUtil.formatCurrency(totalGastos)} COP', const Color(0XFFD64848)),
                   ],
                 )),
             const SizedBox(height: 20),
-            _buildPieChart(context, 'Ingresos', {
-              'Salario': 60.0,
-              'Inversiones': 40.0,
-            }, [
-              _buildCardItem('Salario', Colors.blue),
-              _buildCardItem('Inversiones', Colors.black),
-            ]),
+            _buildPieChart(context, 'Ingresos', ingresosMap, ingresosLegends),
             const SizedBox(height: 20),
-            _buildPieChart(context, 'Gastos', {
-              'Arriendo': 25.0,
-              'Comida': 25.0,
-              'Servicios': 25.0,
-              'Entretenimiento': 25.0,
-            }, [
-              _buildCardItem('Arriendo', Colors.yellow),
-              _buildCardItem('Comida', Colors.blue),
-              _buildCardItem('Servicios', Colors.black),
-              _buildCardItem('Entretenimiento', Colors.teal),
-            ]),
+            _buildPieChart(context, 'Gastos', gastosMap, gastosLegends),
           ],
         ),
       ),
@@ -94,6 +112,31 @@ class HomeContent extends StatelessWidget {
   }
 
   Widget _buildPieChart(BuildContext context, String title, Map<String, double> dataMap, List<Widget> legends) {
+    if (dataMap.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(
+              color: title == 'Ingresos'
+                  ? const Color(0xFFB7F0B2)
+                  : const Color(0XFFF0B2B2)),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Center(
+          child: Text(
+            'No hay datos disponibles',
+            style: TextStyle(
+              color: title == 'Ingresos'
+                  ? const Color(0xFF6DD648)
+                  : const Color(0XFFD64848),
+              fontSize: 20,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+        ),
+      );
+    }
+
     return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -128,9 +171,10 @@ class HomeContent extends StatelessWidget {
                     animationDuration: const Duration(milliseconds: 500),
                     chartLegendSpacing: 32,
                     chartRadius: MediaQuery.of(context).size.width / 3.2,
-                    colorList: title == 'Ingresos'
-                        ? [Colors.blue, Colors.black]
-                        : [Colors.yellow, Colors.blue, Colors.black, Colors.teal],
+                    colorList: dataMap.keys.map((key) {
+                      final category = CategoryData.categories.firstWhere((category) => category.name == key, orElse: () => CategoryModel(name: key, icon: Icons.category, backgroundColor: Colors.grey, type: ''));
+                      return category.backgroundColor;
+                    }).toList(),
                     initialAngleInDegree: 0,
                     chartType: ChartType.ring,
                     ringStrokeWidth: 32,
@@ -178,5 +222,17 @@ class HomeContent extends StatelessWidget {
         const SizedBox(width: 12),
       ],
     );
+  }
+
+  Color? _getCategoryColor(String categoryName) {
+    final category = CategoryData.categories.firstWhere(
+            (category) => category.name == categoryName,
+        orElse: () => CategoryModel(
+          name: 'Default',
+          icon: Icons.category,
+          backgroundColor: Colors.grey,
+          type: 'Default',
+        ));
+    return category.backgroundColor;
   }
 }

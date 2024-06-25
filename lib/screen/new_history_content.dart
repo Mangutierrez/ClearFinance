@@ -3,6 +3,7 @@ import 'package:clear_finance/data/history_data.dart';
 import 'package:clear_finance/model/category_model.dart';
 import 'package:clear_finance/model/history_model.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class NewHistoryContent extends StatefulWidget {
   final HistoryModel? historyToEdit;
@@ -22,11 +23,11 @@ class NewHistoryContent extends StatefulWidget {
 
 class _NewHistoryContentState extends State<NewHistoryContent> {
   final _formKey = GlobalKey<FormState>();
-  String? _selectedDate;
+  DateTime? _selectedDate;
   String? _selectedCategory;
   String? _selectedType;
   String? _selectedDescription;
-  String? _selectedAmount;
+  double? _selectedAmount;
 
   @override
   void initState() {
@@ -36,11 +37,12 @@ class _NewHistoryContentState extends State<NewHistoryContent> {
 
   void _loadInitialData() {
     if (widget.historyToEdit != null) {
-      _selectedDate = widget.historyToEdit!.date;
-      _selectedCategory = widget.historyToEdit!.category;
-      _selectedType = widget.historyToEdit!.type;
-      _selectedDescription = widget.historyToEdit!.description;
-      _selectedAmount = widget.historyToEdit!.amount;
+      final history = widget.historyToEdit!;
+      _selectedDate = history.date;
+      _selectedCategory = history.category;
+      _selectedType = history.type;
+      _selectedDescription = history.description;
+      _selectedAmount = history.amount;
     }
   }
 
@@ -61,23 +63,28 @@ class _NewHistoryContentState extends State<NewHistoryContent> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
-            TextFormField(
-              initialValue: _selectedDate ?? '',
-              decoration: const InputDecoration(
-                labelText: 'Fecha',
-                border: OutlineInputBorder(),
+            GestureDetector(
+              onTap: () {
+                _selectDate(context);
+              },
+              child: InputDecorator(
+                decoration: const InputDecoration(
+                  labelText: 'Fecha',
+                  border: OutlineInputBorder(),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      _selectedDate != null
+                          ? DateFormat('dd/MM/yyyy').format(_selectedDate!)
+                          : 'Selecciona una fecha',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    const Icon(Icons.calendar_today, color: Colors.grey),
+                  ],
+                ),
               ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Por favor ingresa una fecha';
-                }
-                return null;
-              },
-              onChanged: (value) {
-                setState(() {
-                  _selectedDate = value;
-                });
-              },
             ),
             const SizedBox(height: 20),
             DropdownButtonFormField<String>(
@@ -148,20 +155,24 @@ class _NewHistoryContentState extends State<NewHistoryContent> {
             ),
             const SizedBox(height: 20),
             TextFormField(
-              initialValue: _selectedAmount ?? '',
+              initialValue: _selectedAmount?.toString() ?? '',
               decoration: const InputDecoration(
                 labelText: 'Monto',
                 border: OutlineInputBorder(),
               ),
+              keyboardType: TextInputType.number,
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Por favor ingresa un monto';
+                }
+                if (double.tryParse(value) == null) {
+                  return 'Por favor ingresa un monto válido';
                 }
                 return null;
               },
               onChanged: (value) {
                 setState(() {
-                  _selectedAmount = value;
+                  _selectedAmount = double.tryParse(value);
                 });
               },
             ),
@@ -207,6 +218,21 @@ class _NewHistoryContentState extends State<NewHistoryContent> {
         ),
       ),
     );
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+
+    if (pickedDate != null && pickedDate != _selectedDate) {
+      setState(() {
+        _selectedDate = pickedDate;
+      });
+    }
   }
 
   Color _getCategoryColor(String categoryName) {

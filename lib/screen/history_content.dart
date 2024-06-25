@@ -1,6 +1,7 @@
 import 'package:clear_finance/data/history_data.dart';
 import 'package:clear_finance/model/history_model.dart';
 import 'package:clear_finance/screen/new_history_content.dart';
+import 'package:clear_finance/util/format_util.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -20,27 +21,39 @@ class _HistoryContentState extends State<HistoryContent> {
   Widget build(BuildContext context) {
     return showNewHistoryContent
         ? NewHistoryContent(
-            historyToEdit: historyToEdit,
-            onCancel: () {
-              setState(() {
-                showNewHistoryContent = false;
-              });
-            },
-            onHistoryCreated: (fromEdit, historyModel) {
-              if (fromEdit) {
-                HistoryData.history.remove(historyToEdit);
-                historyToEdit = null;
-              }
-              HistoryData.history.add(historyModel);
-              setState(() {
-                showNewHistoryContent = false;
-              });
-            },
-          )
+      historyToEdit: historyToEdit,
+      onCancel: () {
+        setState(() {
+          showNewHistoryContent = false;
+        });
+      },
+      onHistoryCreated: (fromEdit, historyModel) {
+        if (fromEdit) {
+          if (historyToEdit == null) return;
+          HistoryData.removeHistory(historyToEdit!);
+          historyToEdit = null;
+        }
+        HistoryData.addHistory(historyModel);
+        setState(() {
+          showNewHistoryContent = false;
+        });
+      },
+    )
         : _buildHistoryContent();
   }
 
   Widget _buildHistoryContent() {
+    Map<String, List<HistoryModel>> groupedHistory = {};
+
+    for (var historyItem in HistoryData.history) {
+      String formattedDate = FormatUtil.formatDate(historyItem.date);
+      if (groupedHistory.containsKey(formattedDate)) {
+        groupedHistory[formattedDate]!.add(historyItem);
+      } else {
+        groupedHistory[formattedDate] = [historyItem];
+      }
+    }
+
     return Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(children: [
@@ -74,24 +87,31 @@ class _HistoryContentState extends State<HistoryContent> {
                     ],
                   ))),
           const SizedBox(height: 10),
-          Expanded(
+          HistoryData.history.isEmpty
+              ? const Expanded(child: Center(child: Text('No hay movimientos')))
+              : Expanded(
               child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: HistoryData.history.map((historyItem) {
-                return Column(
-                  children: [
-                    const SizedBox(height: 10),
-                    Text(historyItem.date,
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold)),
-                    _buildHistoryItem(historyItem),
-                  ],
-                );
-              }).toList(),
-            ),
-          ))
+                child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: groupedHistory.entries.map((entry) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 10),
+                        Text(entry.key,
+                            style: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold)),
+                        Column(
+                          children: entry.value.map((historyItem) {
+                            return _buildHistoryItem(historyItem);
+                          }).toList(),
+                        ),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              ))
         ]));
   }
 
@@ -128,7 +148,7 @@ class _HistoryContentState extends State<HistoryContent> {
                     icon: SvgPicture.asset('assets/images/ic_delete.svg'),
                     onPressed: () {
                       setState(() {
-                        HistoryData.history.remove(historyItem);
+                        HistoryData.removeHistory(historyItem);
                       });
                     },
                   ),
@@ -139,7 +159,7 @@ class _HistoryContentState extends State<HistoryContent> {
                   style: const TextStyle(
                       fontSize: 20, fontWeight: FontWeight.w300)),
               const SizedBox(height: 8),
-              Text(historyItem.amount,
+              Text('${FormatUtil.formatCurrency(historyItem.amount)} COP',
                   style: const TextStyle(
                       fontSize: 20, fontWeight: FontWeight.bold)),
             ],

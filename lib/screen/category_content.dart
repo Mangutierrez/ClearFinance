@@ -27,10 +27,11 @@ class _CategoryContentState extends State<CategoryContent> {
             },
             onCategoryCreated: (fromEdit, categoryModel) {
               if (fromEdit) {
-                CategoryData.categories.remove(categoryToEdit);
+                if (categoryToEdit == null) return;
+                CategoryData.removeCategory(categoryToEdit!);
                 categoryToEdit = null;
               }
-              CategoryData.categories.add(categoryModel);
+              CategoryData.addCategory(categoryModel);
               setState(() {
                 showNewCategoryContent = false;
               });
@@ -168,7 +169,7 @@ class _CategoryContentState extends State<CategoryContent> {
                     ),
                     onPressed: () {
                       setState(() {
-                        CategoryData.categories.remove(category);
+                        CategoryData.removeCategory(category);
                       });
                     },
                   ),

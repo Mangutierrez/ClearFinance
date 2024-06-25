@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
 
@@ -59,6 +60,10 @@ class RegisterScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            Expanded(child: Image.asset(
+              'assets/images/logo.png',
+              height: 150,
+            )),
             const TextField(
               decoration: InputDecoration(
                 labelText: 'Correo electrónico',
@@ -117,6 +122,10 @@ class LoginScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            Expanded(child: Image.asset(
+              'assets/images/logo.png',
+              height: 150,
+            )),
             const TextField(
               decoration: InputDecoration(
                 labelText: 'Correo electrónico',

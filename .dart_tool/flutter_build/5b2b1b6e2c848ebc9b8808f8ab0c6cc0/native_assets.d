@@ -1,0 +1,1 @@
+ /Users/luis.mesa/GitHub/mangutierrez/ClearFinance/.dart_tool/flutter_build/5b2b1b6e2c848ebc9b8808f8ab0c6cc0/native_assets.yaml: 

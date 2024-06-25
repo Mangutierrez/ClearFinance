@@ -1,25 +1,32 @@
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:clear_finance/model/history_model.dart';
-import 'package:flutter/material.dart';
 
 class HistoryData {
-  static List<HistoryModel> history = [
-    HistoryModel(
-      date: 'May 25',
-      category: 'Salario',
-      type: 'Ingreso',
-      description: 'Sueldo',
-      amount: '1000.00 COP',
-      categoryColor: const Color(0xFFF4BE37),
-      typeColor: const Color(0xFFD64848),
-    ),
-    HistoryModel(
-      date: 'May 25',
-      category: 'Comida',
-      type: 'Gasto',
-      description: 'Almuerzo',
-      amount: '50.00 COP',
-      categoryColor: const Color(0xFF48B6D6),
-      typeColor: const Color(0xFFD64848),
-    ),
-  ];
+  static List<HistoryModel> history = [];
+
+  static Future<void> loadHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? historyString = prefs.getString('history');
+    if (historyString != null) {
+      final List<dynamic> historyJson = jsonDecode(historyString);
+      history = historyJson.map((json) => HistoryModel.fromJson(json)).toList();
+    }
+  }
+
+  static Future<void> saveHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String historyString = jsonEncode(history.map((history) => HistoryModel.toJson(history)).toList());
+    prefs.setString('history', historyString);
+  }
+
+  static void addHistory(HistoryModel historyItem) {
+    history.add(historyItem);
+    saveHistory();
+  }
+
+  static void removeHistory(HistoryModel historyItem) {
+    history.remove(historyItem);
+    saveHistory();
+  }
 }
