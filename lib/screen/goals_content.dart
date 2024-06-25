@@ -1,121 +1,163 @@
-import 'package:flutter/cupertino.dart';
+import 'package:clear_finance/util/format_util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
+import 'new_goal_content.dart';
+import 'package:clear_finance/data/goal_data.dart';
+import 'package:clear_finance/model/goal_model.dart';
 
-class GoalsContent extends StatelessWidget {
+class GoalsContent extends StatefulWidget {
   const GoalsContent({super.key});
 
   @override
+  _GoalsContentState createState() => _GoalsContentState();
+}
+
+class _GoalsContentState extends State<GoalsContent> {
+  bool showNewGoalContent = false;
+  GoalModel? goalToEdit;
+
+  @override
   Widget build(BuildContext context) {
-    return Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(children: [
-          InkWell(
-              onTap: () {},
-              child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFBA7423),
-                    borderRadius: BorderRadius.circular(50),
-                  ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(padding: EdgeInsets.symmetric(horizontal: 16)),
-                      Text(
-                        'Añadir Nueva Meta',
-                        style: TextStyle(fontSize: 18, color: Colors.white),
-                      ),
-                      Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16),
-                          child: Icon(
-                            Icons.add,
-                            color: Colors.white,
-                            size: 30,
-                          )),
-                    ],
-                  ))),
-          const SizedBox(height: 10),
-          Expanded(
-              child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 10),
-                _buildGoalsItem(
-                    'Entretenimiento',
-                    'Computador',
-                    '0.00 COP',
-                    '35/12/2024',
-                    const Color(0xFF48B6D6),
-                    const Color(0xFFD64848)),
-                const SizedBox(height: 10),
-                _buildGoalsItem(
-                    'Entretenimiento',
-                    'Computador',
-                    '0.00 COP',
-                    '35/12/2024',
-                    const Color(0xFF48B6D6),
-                    const Color(0xFFD64848)),
-                const SizedBox(height: 10),
-                _buildGoalsItem(
-                    'Entretenimiento',
-                    'Computador',
-                    '0.00 COP',
-                    '35/12/2024',
-                    const Color(0xFF48B6D6),
-                    const Color(0xFFD64848)),
-              ],
-            ),
-          ))
-        ]));
+    return showNewGoalContent
+        ? NewGoalContent(
+            goalToEdit: goalToEdit,
+            onCancel: () {
+              setState(() {
+                showNewGoalContent = false;
+              });
+            },
+            onGoalCreated: (fromEdit, goalModel) {
+              setState(() {
+                if (fromEdit) {
+                  if (goalToEdit == null) return;
+                  GoalData.removeGoal(goalToEdit!);
+                  goalToEdit = null;
+                }
+                GoalData.addGoal(goalModel);
+                showNewGoalContent = false;
+              });
+            },
+          )
+        : _buildGoalContent();
   }
 
-  Widget _buildGoalsItem(String category, String description, String amount, String date, Color categoryColor, Color typeColor) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF1F1F1),
-            borderRadius: BorderRadius.circular(10),
+  Widget _buildGoalContent() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          InkWell(
+            onTap: () {
+              setState(() {
+                showNewGoalContent = true;
+              });
+            },
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFBA7423),
+                borderRadius: BorderRadius.circular(50),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+                children: [
+                  SizedBox.shrink(),
+                  Text(
+                    'Añadir Nueva Meta',
+                    style: TextStyle(fontSize: 18, color: Colors.white),
+                  ),
+                  Icon(
+                    Icons.add,
+                    color: Colors.white,
+                    size: 30,
+                  ),
+                ],
+              ),
+            ),
           ),
+          const SizedBox(height: 10),
+          Expanded(
+            child: GoalData.goals.isNotEmpty
+                ? ListView.builder(
+                    itemCount: GoalData.goals.length,
+                    itemBuilder: (context, index) {
+                      final goal = GoalData.goals[index];
+                      return _buildGoalItem(goal);
+                    },
+                  )
+                : const Center(
+                    child: Text('No hay metas'),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGoalItem(GoalModel goal) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFFF1F1F1),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  _buildChip(category, categoryColor),
+                  _buildChip(goal.category, goal.categoryColor),
                   const Spacer(),
                   IconButton(
-                    icon: SvgPicture.asset('assets/images/ic_edit.svg'),
-                    onPressed: () {},
+                    icon: SvgPicture.asset('assets/images/ic_edit.svg',
+                        color: Colors.yellow),
+                    onPressed: () {
+                      setState(() {
+                        showNewGoalContent = true;
+                        goalToEdit = goal;
+                      });
+                    },
                   ),
                   IconButton(
-                    icon: SvgPicture.asset('assets/images/ic_delete.svg'),
-                    onPressed: () {},
+                    icon: SvgPicture.asset('assets/images/ic_delete.svg',
+                        color: Colors.red),
+                    onPressed: () {
+                      setState(() {
+                        GoalData.removeGoal(goal);
+                      });
+                    },
                   ),
                 ],
               ),
               const SizedBox(height: 8),
-              Text(description,
-                  style: const TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.w300)),
+              Text(
+                goal.name,
+                style:
+                    const TextStyle(fontSize: 20, fontWeight: FontWeight.w300),
+              ),
               const SizedBox(height: 8),
-              Text(amount,
-                  style: const TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.bold)),
+              Text(
+                '${FormatUtil.formatCurrency(goal.amount)} COP',
+                style:
+                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 8),
-              Text('Fecha Límite: $date',
-                  style: const TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.w300, color: Color(0xFFBA7423))),
+              Text(
+                'Fecha Límite: ${DateFormat('dd/MM/yyyy').format(goal.date)}',
+                style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w300,
+                    color: Color(0xFFBA7423)),
+              ),
             ],
           ),
         ),
-      ],
+      ),
     );
   }
 
@@ -126,7 +168,13 @@ class GoalsContent extends StatelessWidget {
         color: color,
         borderRadius: BorderRadius.circular(50),
       ),
-      child: Text(label, style: const TextStyle(color: Colors.white)),
+      child: Row(
+        children: [
+          Icon(Icons.category, color: Colors.white, size: 16),
+          const SizedBox(width: 4),
+          Text(label, style: const TextStyle(color: Colors.white)),
+        ],
+      ),
     );
   }
 }
